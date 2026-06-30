@@ -69,3 +69,12 @@ Output file path [my_video_clipped.mp4]:
 - Segments are concatenated via ffmpeg's concat demuxer
 - If stream copy fails (codec mismatch), it falls back to re-encoding with `libx264`
 - Temporary files are cleaned up automatically
+
+# Companion program : stream_clipper
+
+`stream_clipper.py` is a graphical interface for `video_clipper.py` *(in French)*
+
+just install streamlit ( https://streamlit.io/ ) and do
+```bash
+streamlit run stream_clipper.py
+```
