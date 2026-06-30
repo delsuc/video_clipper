@@ -7,6 +7,8 @@
 It took  some trial/error, the most difficult part (for qwen) was finding the correct `ffmpeg` arguments    
 The only correction I did is in this README file* 
 
+That was a fun trial, there is certainly potential here, however, I am not sure I will use it further on...
+
 
 ## Requirements
 
