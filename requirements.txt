@@ -1,0 +1,2 @@
+# No external Python packages required.
+# Dependencies: Python 3.6+, ffmpeg, ffprobe (system-level)

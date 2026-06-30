@@ -1,3 +1,71 @@
-# video_clipper
+# Video Clipper
 
-Extract and concatenate video segments from a source file using ffmpeg.
+**Extract and concatenate video segments from a source file using ffmpeg**.    
+*dedicated to Sophie*
+
+*This is my first try of developing a (small) program using exclusively **AI** - here `opencode` and `qwen3.5`
+It took  some trial/error, the most difficult part (for qwen) was finding the correct `ffmpeg` arguments    
+The only correction I did is in this README file* 
+
+
+## Requirements
+
+- Python 3.6+
+- `ffmpeg` / `ffprobe` installed and on PATH
+
+## Usage
+
+```bash
+python3 video_clipper.py
+```
+There are two usages:
+
+### interactive mode 
+The tool will:
+
+1. Ask for the input video file path
+2. Let you add multiple segments by specifying start/end timestamps
+3. Generate a concatenated output video
+
+### CLI mode
+
+```bash
+python3 video_clipper.py [-h] [-o OUTPUT] [--debug] input [segments ...]
+```
+try 
+```bash
+python3 video_clipper.py -h
+```
+for details
+## Timestamp Formats
+
+Accepts:
+- `MM:SS` (e.g., `02:30`)
+- `HH:MM:SS` (e.g., `00:02:30`)
+- With fractional seconds (e.g., `02:30.500`)
+- Plain seconds (e.g., `150`)
+
+## Examples
+
+```
+Enter path to input video file: my_video.mp4
+
+--- Segment #1 ---
+  Start time (or 'done' to finish): 00:30
+  End time: 01:45
+
+--- Segment #2 ---
+  Start time (or 'done' to finish): 03:00
+  End time: 04:10
+
+  Start time (or 'done' to finish): done
+
+Output file path [my_video_clipped.mp4]:
+```
+
+## How It Works
+
+- Segments are extracted using `ffmpeg -c copy` (stream copy, fast, no re-encoding)
+- Segments are concatenated via ffmpeg's concat demuxer
+- If stream copy fails (codec mismatch), it falls back to re-encoding with `libx264`
+- Temporary files are cleaned up automatically
