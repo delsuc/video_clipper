@@ -76,7 +76,7 @@ Output file path [my_video_clipped.mp4]:
 ## Installation
 - fetch the code
 ```bash
- git clone https://codeberg.org/delsuc/video_clipper.git
+ git clone https://github.com/delsuc/video_clipper.git
  cd video_clipper/
 ```
 ### test file
