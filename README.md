@@ -4,8 +4,9 @@
 *dedicated to Sophie*
 
 *This is my first try of developing a (small) program using exclusively **AI** - here `opencode` and `qwen3.5`
+
 It took  some trial/error, the most difficult part (for qwen) was finding the correct `ffmpeg` arguments    
-The only correction I did is in this README file* 
+The only correction I did is improving the file chooser in the streamlit GUI version (using *EURIA* this time), and in this README file.
 
 That was a fun trial, there is certainly potential here, however, I am not sure I will use it further on...
 
@@ -72,11 +73,41 @@ Output file path [my_video_clipped.mp4]:
 - If stream copy fails (codec mismatch), it falls back to re-encoding with `libx264`
 - Temporary files are cleaned up automatically
 
+## Installation
+- fetch the code
+```bash
+ git clone https://codeberg.org/delsuc/video_clipper.git
+ cd video_clipper/
+```
+### test file
+If you want to get the small video test file, it is handled by LFS, so  `git-lfs` has to be installed on your machine.
+
+Then you have to replace the video file pointer brough by `git clone` with the real file:
+```bash
+ git lfs install             # activate lfs in this project
+ git lfs fetch --all         # synchronise
+ git lfs checkout            # and checkout
+```
+
 # Companion program : stream_clipper
 
 `stream_clipper.py` is a graphical interface for `video_clipper.py` *(in French)*
 
-just install streamlit ( https://streamlit.io/ ) and do
+just install streamlit ( https://streamlit.io/ ) 
+
+I usually use `uv` with a local virtual interface :
+```bash
+uv venv
+source .venv/bin/activate
+uv pip install streamlit
+```
+
+to launch, do
 ```bash
 streamlit run stream_clipper.py
 ```
+a browser page should open with the GUI
+
+closing the terminal or `^C` to finish.
+
+
