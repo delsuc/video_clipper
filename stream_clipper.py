@@ -30,6 +30,109 @@ SEGMENT_COLORS = [
 ]
 
 
+def file_system_selector(root_path: str = ".", extensions: list = ['mp4', 'mov', 'avi']):
+    """
+    rajout avec Euria - 18 09 2026
+    >>> Peux m'écrire pour streamlit une fonction qui permet de lister et selectionner le contenu d'un dossier (en commençant pas '.'), en tilisant os.listdir() par exemple,  et qui permet aussi de changer de dossier.
+    >>> C'est bien ce que je veux, peux tu réécrire avec un filtre sur les extensions de fichiers, et un liste d'extensions possibles comme argument de la fonction
+    + qq modifs
+    Un widget personnalisé pour naviguer dans le système de fichiers local avec filtrage par extension.
+    
+    Args:
+        root_path (str): Le chemin de départ (défaut: dossier du script).
+        extensions (list): Liste des extensions acceptées (ex: [".csv", ".txt", ".pdf"]). 
+                           Si None, tous les fichiers sont affichés.
+    
+    Returns:
+        str | None: Le chemin complet du fichier sélectionné, ou None si aucun fichier n'est choisi.
+    """
+    # Normalisation des extensions (minuscules, avec point)
+    allowed_exts = None
+    if extensions:
+        allowed_exts = [ext.lower() if ext.startswith('.') else f".{ext.lower()}" for ext in extensions]
+
+    # Initialisation du chemin actuel dans la session si inexistant
+    if "current_dir" not in st.session_state:
+        st.session_state.current_dir = os.path.abspath(root_path)
+    
+    # Affichage du chemin actuel
+    st.text_input("Dossier actuel", value=st.session_state.current_dir, disabled=True)
+    
+    # Liste des éléments du dossier
+    try:
+        items = os.listdir(st.session_state.current_dir)
+    except PermissionError:
+        st.error("Permission refusée pour accéder à ce dossier.")
+        return None
+    except FileNotFoundError:
+        st.error("Le dossier n'existe plus.")
+        # Reset au dossier racine en cas d'erreur
+        st.session_state.current_dir = os.path.abspath(root_path)
+        st.rerun()
+        return None
+
+    # Séparation dossiers et fichiers
+    folders = []
+    files = []
+    
+    for item in items:
+        full_path = os.path.join(st.session_state.current_dir, item)
+        if os.path.isdir(full_path):
+            if item[0] != '.':
+                folders.append(item)
+        elif os.path.isfile(full_path):
+            # Filtrage par extension si la liste est fournie
+            if allowed_exts:
+                _, ext = os.path.splitext(item)
+                if ext.lower() in allowed_exts:
+                    files.append(item)
+            else:
+                files.append(item)
+    
+    # Tri alphabétique
+    folders.sort(key=str.lower)
+    files.sort(key=str.lower)
+
+    st.markdown("### sélectionne un fichier vidéo")
+    st.markdown(f"*extensions: {' , '.join(extensions)}*")
+    
+    # Bouton pour remonter au dossier parent
+    parent_dir = os.path.dirname(st.session_state.current_dir)
+    if st.button("📁 .. (Dossier parent)", use_container_width=True, key="btn_parent"):
+        st.session_state.current_dir = parent_dir
+        st.rerun()
+
+    # Affichage des dossiers
+    for folder in folders:
+        if st.button(f"📂 {folder}", key=f"dir_{folder}", use_container_width=True):
+            st.session_state.current_dir = os.path.join(st.session_state.current_dir, folder)
+            st.rerun()
+
+    # Affichage des fichiers filtrés
+    selected_file = None
+    
+    if not files and allowed_exts:
+        st.info(f"Aucun fichier avec les extensions {allowed_exts} dans ce dossier.")
+    
+    for file in files:
+        if st.button(f"📄 {file}", key=f"file_{file}", use_container_width=True):
+            selected_file = os.path.join(st.session_state.current_dir, file)
+    
+    if selected_file:
+        st.success(f"Fichier sélectionné : {selected_file}")
+        return selected_file
+    
+    return None
+
+def file_selector(folder_path='.', label='Choisis un fichier', help=None):
+    """
+    from https://discuss.streamlit.io/t/file-browser-to-select-a-folder-or-a-file/49325
+    hum, ça marche pas, on ne peut pas changer le folder_path ..."""
+    filenames = os.listdir(folder_path)
+    selected_filename = st.selectbox(label, filenames, help=help)
+    return os.path.join(folder_path, selected_filename)
+
+
 def init_state():
     """Initialiser les variables d'état de la session."""
     st.session_state.setdefault("video_path", None)
@@ -89,12 +192,12 @@ def remove_segment(idx):
 def process_segments():
     """Lancer le traitement et mettre à jour l'état de la session."""
     if not st.session_state.video_path or not os.path.exists(st.session_state.video_path):
-        st.session_state.error = "Veuillez d'abord fournir un chemin de fichier vidéo valide."
+        st.session_state.error = "Tâche d'abord fournir un chemin de fichier vidéo valide."
         st.rerun()
         return
 
     if not st.session_state.segments:
-        st.session_state.error = "Veuillez ajouter au moins un segment."
+        st.session_state.error = "Il faut au moins un segment."
         st.rerun()
         return
 
@@ -139,11 +242,13 @@ def main():
     with st.sidebar:
         st.header(":material/video_library: Source")
 
-        file_path = st.text_input(
-            "Chemin du fichier vidéo",
-            placeholder="/chemin/vers/ma_video.mp4",
-            help="Entrez le chemin complet d'un fichier vidéo local. Aucune limite de taille.",
-        )
+        # file_path = st.text_input(
+        #     "Chemin du fichier vidéo",
+        #     placeholder="/chemin/vers/ma_video.mp4",
+        #     help="Copiez/Collez ici le chemin complet d'un fichier vidéo local. Aucune limite de taille.",
+        # )
+
+        file_path = file_system_selector()
 
         if file_path and os.path.isfile(file_path):
             st.session_state.video_name = os.path.splitext(os.path.basename(file_path))[0]
@@ -167,7 +272,7 @@ def main():
                 key="output_file_input",
             )
         else:
-            st.info(":material/info: Entrez le chemin d'un fichier vidéo pour commencer")
+            st.info(":material/info: Sélectionne le chemin d'un fichier vidéo pour commencer")
 
         st.divider()
 
@@ -192,7 +297,7 @@ def main():
 
     # --- Zone principale ---
     if not st.session_state.video_path or not os.path.exists(st.session_state.video_path):
-        st.info("Entrez le chemin d'un fichier vidéo dans la barre latérale pour commencer.")
+        st.info("Choisis un fichier vidéo dans la barre latérale pour commencer.")
         return
 
     if st.session_state.video_duration is None:
@@ -237,7 +342,7 @@ def main():
 
         if add_btn:
             if not new_start or not new_end:
-                st.error("Veuillez saisir les deux heures (début et fin).")
+                st.error("Il faut saisir les deux dates (début et fin).")
             else:
                 try:
                     start = parse_timestamp(new_start)
@@ -348,7 +453,7 @@ def main():
                 st.write(f"- **Total : {len(st.session_state.segments)} segment(s), {format_timestamp(total_selected)}**")
 
     else:
-        st.info(":material/add_circle: Ajoutez votre premier segment avec le formulaire ci-dessus.")
+        st.info(":material/add_circle: Ajoute ton premier segment avec le formulaire ci-dessus.")
 
     # --- Statut du traitement ---
     if st.session_state.processing:
